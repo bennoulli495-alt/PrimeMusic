@@ -1,0 +1,21 @@
+workflows:
+  prime-music-debug:
+    name: Prime Music - Debug APK
+    max_build_duration: 60
+    environment:
+      groups: []
+      vars:
+        PACKAGE_NAME: "com.primemusic.app"
+      java: 17
+    scripts:
+      - name: Generate Gradle Wrapper
+        script: |
+          gradle wrapper --gradle-version 8.5
+      - name: Build Debug APK
+        script: |
+          ./gradlew assembleDebug --stacktrace
+    artifacts:
+      - app/build/outputs/apk/**/*.apk
+    publishing:
+      email:
+        recipients: []
