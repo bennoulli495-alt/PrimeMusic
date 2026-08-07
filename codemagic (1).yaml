@@ -22,7 +22,26 @@ workflows:
           mkdir -p app/src/main/res/drawable
           mkdir -p app/src/main/res/mipmap-anydpi-v26
 
-          move() { if [ -f "$1" ]; then mv -f "$1" "$2"; fi; }
+          latest_variant() {
+            local base="$1"
+            local name="${base%.*}"
+            local ext="${base##*.}"
+            local best="$base"
+            local n=1
+            while [ -f "${name} (${n}).${ext}" ]; do
+              best="${name} (${n}).${ext}"
+              n=$((n+1))
+            done
+            printf '%s' "$best"
+          }
+
+          move() {
+            local src
+            src=$(latest_variant "$1")
+            if [ -f "$src" ]; then
+              mv -f "$src" "$2"
+            fi
+          }
 
           move AndroidManifest.xml app/src/main/AndroidManifest.xml
           move MainActivity.kt app/src/main/java/com/primemusic/app/MainActivity.kt
