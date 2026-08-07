@@ -3,11 +3,78 @@ workflows:
     name: Prime Music - Debug APK
     max_build_duration: 60
     environment:
-      groups: []
       vars:
         PACKAGE_NAME: "com.primemusic.app"
       java: 17
     scripts:
+      - name: Reorganize flat-uploaded files into Android project structure
+        script: |
+          set -e
+
+          mkdir -p app/src/main/java/com/primemusic/app/model
+          mkdir -p app/src/main/java/com/primemusic/app/util
+          mkdir -p app/src/main/java/com/primemusic/app/adapter
+          mkdir -p app/src/main/java/com/primemusic/app/service
+          mkdir -p app/src/main/java/com/primemusic/app/fragments
+          mkdir -p app/src/main/res/layout
+          mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/res/menu
+          mkdir -p app/src/main/res/drawable
+          mkdir -p app/src/main/res/mipmap-anydpi-v26
+
+          move() { if [ -f "$1" ]; then mv -f "$1" "$2"; fi; }
+
+          move AndroidManifest.xml app/src/main/AndroidManifest.xml
+          move MainActivity.kt app/src/main/java/com/primemusic/app/MainActivity.kt
+          move Song.kt app/src/main/java/com/primemusic/app/model/Song.kt
+          move MediaScanner.kt app/src/main/java/com/primemusic/app/util/MediaScanner.kt
+          move SongAdapter.kt app/src/main/java/com/primemusic/app/adapter/SongAdapter.kt
+          move MusicService.kt app/src/main/java/com/primemusic/app/service/MusicService.kt
+          move HomeFragment.kt app/src/main/java/com/primemusic/app/fragments/HomeFragment.kt
+          move PlaylistsFragment.kt app/src/main/java/com/primemusic/app/fragments/PlaylistsFragment.kt
+          move SearchFragment.kt app/src/main/java/com/primemusic/app/fragments/SearchFragment.kt
+          move SongsFragment.kt app/src/main/java/com/primemusic/app/fragments/SongsFragment.kt
+
+          move activity_main.xml app/src/main/res/layout/activity_main.xml
+          move fragment_songs.xml app/src/main/res/layout/fragment_songs.xml
+          move fragment_placeholder.xml app/src/main/res/layout/fragment_placeholder.xml
+          move item_song.xml app/src/main/res/layout/item_song.xml
+
+          move bottom_nav_menu.xml app/src/main/res/menu/bottom_nav_menu.xml
+          move top_menu.xml app/src/main/res/menu/top_menu.xml
+
+          move colors.xml app/src/main/res/values/colors.xml
+          move strings.xml app/src/main/res/values/strings.xml
+          move themes.xml app/src/main/res/values/themes.xml
+
+          move ic_launcher.xml app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+          move ic_launcher_round.xml app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+
+          for f in ic_heart.xml ic_home.xml ic_launcher_background.xml ic_launcher_foreground.xml ic_more.xml ic_music_placeholder.xml ic_next.xml ic_pause.xml ic_play.xml ic_playlist.xml ic_prev.xml ic_search.xml ic_settings.xml ic_song.xml; do
+            move "$f" "app/src/main/res/drawable/$f"
+          done
+
+          move proguard-rules.pro app/proguard-rules.pro
+
+          if [ -f "build (1).gradle" ]; then
+            if grep -q "com.android.application" "build (1).gradle"; then
+              mv -f "build (1).gradle" app/build.gradle
+            else
+              mv -f "build (1).gradle" /tmp/extra_root_build.gradle
+            fi
+          fi
+
+          if [ -f build.gradle ] && grep -q "com.android.application" build.gradle; then
+            mv -f build.gradle app/build.gradle
+            if [ -f /tmp/extra_root_build.gradle ]; then
+              mv -f /tmp/extra_root_build.gradle build.gradle
+            fi
+          fi
+
+          echo "----- Final structure -----"
+          find app -maxdepth 6 -type f
+          echo "----------------------------"
+
       - name: Generate Gradle Wrapper
         script: |
           gradle wrapper --gradle-version 8.5
