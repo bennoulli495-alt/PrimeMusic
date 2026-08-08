@@ -79,7 +79,7 @@ workflows:
           move ic_launcher.xml app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
           move ic_launcher_round.xml app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
 
-          for f in ic_heart.xml ic_heart_outline.xml ic_home.xml ic_launcher_background.xml ic_launcher_foreground.xml ic_more.xml ic_music_placeholder.xml ic_next.xml ic_pause.xml ic_play.xml ic_playlist.xml ic_prev.xml ic_search.xml ic_settings.xml ic_song.xml ic_shuffle.xml ic_repeat.xml ic_repeat_one.xml ic_add.xml ic_folder.xml ic_back.xml bg_round_accent.xml; do
+          for f in ic_heart.xml ic_heart_outline.xml ic_home.xml ic_launcher_background.xml ic_launcher_foreground.xml ic_more.xml ic_music_placeholder.xml ic_next.xml ic_pause.xml ic_play.xml ic_playlist.xml ic_prev.xml ic_search.xml ic_settings.xml ic_song.xml ic_shuffle.xml ic_repeat.xml ic_repeat_one.xml ic_add.xml ic_folder.xml ic_back.xml bg_round_accent.xml ic_sort.xml ic_timer.xml ic_delete.xml ic_edit.xml; do
             move "$f" "app/src/main/res/drawable/$f"
           done
 

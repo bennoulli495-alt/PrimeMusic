@@ -10,6 +10,7 @@ data class Song(
     val duration: Long,      // in milliseconds
     val filePath: String,
     val fileSize: Long,      // in bytes
+    val dateAdded: Long,     // unix seconds, from MediaStore.DATE_ADDED
     val albumArtUri: String?, // content:// uri if embedded art exists (from MediaStore)
     var userAlbumLink: String? = null // user-provided online album art link (Song Info screen)
 ) {

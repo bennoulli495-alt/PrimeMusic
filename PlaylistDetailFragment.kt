@@ -1,6 +1,5 @@
 package com.primemusic.app.fragments
 
-import android.app.AlertDialog
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
@@ -25,6 +24,8 @@ class PlaylistDetailFragment : Fragment(R.layout.fragment_playlist_detail) {
     private lateinit var emptyView: View
     private lateinit var adapter: SongAdapter
     private var playlistName: String = ""
+    private val isVirtual: Boolean
+        get() = playlistName == PrefsManager.VIRTUAL_FAVORITES || playlistName == PrefsManager.VIRTUAL_RECENTLY_ADDED
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -48,12 +49,20 @@ class PlaylistDetailFragment : Fragment(R.layout.fragment_playlist_detail) {
             },
             onMoreClick = { song, anchor ->
                 val popup = android.widget.PopupMenu(requireContext(), anchor)
-                popup.menu.add(0, 1, 0, "Remove from Playlist")
+                if (playlistName == PrefsManager.VIRTUAL_FAVORITES) {
+                    popup.menu.add(0, 1, 0, "Remove from Favorites")
+                } else if (!isVirtual) {
+                    popup.menu.add(0, 1, 0, "Remove from Playlist")
+                }
                 popup.menu.add(0, 2, 1, "Song Info")
                 popup.setOnMenuItemClickListener { item ->
                     when (item.itemId) {
                         1 -> {
-                            PrefsManager.removeSongFromPlaylist(requireContext(), playlistName, song.id)
+                            if (playlistName == PrefsManager.VIRTUAL_FAVORITES) {
+                                PrefsManager.toggleFavorite(requireContext(), song.id)
+                            } else {
+                                PrefsManager.removeSongFromPlaylist(requireContext(), playlistName, song.id)
+                            }
                             refresh()
                             true
                         }
@@ -69,6 +78,7 @@ class PlaylistDetailFragment : Fragment(R.layout.fragment_playlist_detail) {
             onFavoriteClick = { song, button ->
                 val nowFav = PrefsManager.toggleFavorite(requireContext(), song.id)
                 button.setImageResource(if (nowFav) R.drawable.ic_heart else R.drawable.ic_heart_outline)
+                if (playlistName == PrefsManager.VIRTUAL_FAVORITES) refresh()
             }
         )
         recycler.adapter = adapter
@@ -82,8 +92,18 @@ class PlaylistDetailFragment : Fragment(R.layout.fragment_playlist_detail) {
     }
 
     private fun refresh() {
-        val playlist = PrefsManager.getPlaylists(requireContext()).find { it.name == playlistName }
-        val songs = SongLibrary.findByIds(playlist?.songIds ?: emptyList())
+        val context = requireContext()
+        val songs = when (playlistName) {
+            PrefsManager.VIRTUAL_FAVORITES ->
+                SongLibrary.findByIds(PrefsManager.getFavorites(context).toList())
+            PrefsManager.VIRTUAL_RECENTLY_ADDED ->
+                SongLibrary.getAll(context).sortedByDescending { it.dateAdded }
+                    .take(PlaylistsFragment.RECENTLY_ADDED_LIMIT)
+            else -> {
+                val playlist = PrefsManager.getPlaylists(context).find { it.name == playlistName }
+                SongLibrary.findByIds(playlist?.songIds ?: emptyList())
+            }
+        }
         adapter.updateData(songs)
         recycler.visibility = if (songs.isEmpty()) View.GONE else View.VISIBLE
         emptyView.visibility = if (songs.isEmpty()) View.VISIBLE else View.GONE

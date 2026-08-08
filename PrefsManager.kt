@@ -17,6 +17,8 @@ object PrefsManager {
     private const val KEY_RECENTS = "recents"
     private const val KEY_PLAY_COUNTS = "play_counts"
     private const val MAX_RECENTS = 30
+    const val VIRTUAL_FAVORITES = "Favorites"
+    const val VIRTUAL_RECENTLY_ADDED = "Recently Added"
 
     private fun prefs(context: Context) =
         context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

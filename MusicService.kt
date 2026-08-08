@@ -48,6 +48,10 @@ class MusicService : LifecycleService() {
     private var isShuffle = false
     private var repeatMode = 0 // 0 = off, 1 = repeat all, 2 = repeat one
 
+    private val sleepHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var sleepRunnable: Runnable? = null
+    private var sleepEndsAtMillis: Long = 0L
+
     var listener: PlaybackListener? = null
 
     inner class MusicBinder : Binder() {
@@ -171,6 +175,34 @@ class MusicService : LifecycleService() {
     fun getCurrentPosition(): Int = mediaPlayer?.currentPosition ?: 0
     fun getDuration(): Int = mediaPlayer?.duration ?: 0
 
+    // ---------- Sleep timer ----------
+
+    fun startSleepTimer(minutes: Int) {
+        cancelSleepTimer()
+        val runnable = Runnable {
+            mediaPlayer?.let { if (it.isPlaying) it.pause() }
+            listener?.onPlaybackStateChanged(false)
+            updateNotification()
+            sleepEndsAtMillis = 0L
+        }
+        sleepRunnable = runnable
+        sleepEndsAtMillis = System.currentTimeMillis() + minutes * 60_000L
+        sleepHandler.postDelayed(runnable, minutes * 60_000L)
+    }
+
+    fun cancelSleepTimer() {
+        sleepRunnable?.let { sleepHandler.removeCallbacks(it) }
+        sleepRunnable = null
+        sleepEndsAtMillis = 0L
+    }
+
+    fun isSleepTimerActive(): Boolean = sleepRunnable != null
+    fun getSleepTimerRemainingMinutes(): Int {
+        if (sleepEndsAtMillis == 0L) return 0
+        val remainingMs = sleepEndsAtMillis - System.currentTimeMillis()
+        return if (remainingMs <= 0) 0 else (remainingMs / 60_000L).toInt() + 1
+    }
+
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -222,6 +254,7 @@ class MusicService : LifecycleService() {
     }
 
     override fun onDestroy() {
+        cancelSleepTimer()
         mediaPlayer?.release()
         mediaSession.release()
         super.onDestroy()

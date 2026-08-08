@@ -24,7 +24,8 @@ object MediaScanner {
             MediaStore.Audio.Media.DURATION,
             MediaStore.Audio.Media.DATA,
             MediaStore.Audio.Media.SIZE,
-            MediaStore.Audio.Media.ALBUM_ID
+            MediaStore.Audio.Media.ALBUM_ID,
+            MediaStore.Audio.Media.DATE_ADDED
         )
 
         // Only music files, exclude things like ringtones/notification sounds/short clips
@@ -45,6 +46,7 @@ object MediaScanner {
             val dataCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
             val sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)
             val albumIdCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+            val dateAddedCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
 
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idCol)
@@ -54,6 +56,7 @@ object MediaScanner {
                 val path = cursor.getString(dataCol) ?: ""
                 val size = cursor.getLong(sizeCol)
                 val albumId = cursor.getLong(albumIdCol)
+                val dateAdded = cursor.getLong(dateAddedCol)
 
                 val albumArtUri = ContentUris.withAppendedId(
                     Uri.parse("content://media/external/audio/albumart"),
@@ -68,6 +71,7 @@ object MediaScanner {
                         duration = duration,
                         filePath = path,
                         fileSize = size,
+                        dateAdded = dateAdded,
                         albumArtUri = albumArtUri
                     )
                 )

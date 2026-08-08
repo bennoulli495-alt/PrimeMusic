@@ -10,6 +10,7 @@
     android:background="?attr/selectableItemBackground">
 
     <ImageView
+        android:id="@+id/playlist_icon"
         android:layout_width="46dp"
         android:layout_height="46dp"
         android:background="@color/surface_alt"
